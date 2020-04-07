@@ -21,19 +21,22 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.Signature;
 import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 
+import static java.security.Security.getProviders;
+
 public class MainActivity extends AppCompatActivity {
 
     private TextView time;
     private Button buttonStart;
     private Switch switchSE;
-    private Switch switchTEE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         time = (TextView) findViewById(R.id.time);
         buttonStart = (Button) findViewById(R.id.buttonStart);
         switchSE = (Switch) findViewById(R.id.switchSE);
-        switchTEE = (Switch) findViewById(R.id.switchTEE);
 
         buttonStart.setOnClickListener(new View.OnClickListener() {
 
@@ -56,12 +58,7 @@ public class MainActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                } else if (switchTEE.isChecked()) {
-                    try {
-                        saveInTEE();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+
                 } else {
                     try {
                         saveStandard();
@@ -72,19 +69,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        switchSE.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                switchTEE.setChecked(false);
-            }
-        });
 
-        switchTEE.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                switchSE.setChecked(false);
-            }
-        });
     }
 
     public void saveInSE() {
@@ -136,21 +121,23 @@ public class MainActivity extends AppCompatActivity {
                 secureHW = "Key is NOT inside secure hardware";
             }
 
-            time.setText("Execution Time for SE: " + timeElapsed + " ms" + "\n" + secureHW);
+            time.setText("Execution Time with SE: " + timeElapsed + " ms" + "\n" + secureHW);
         } catch (Exception e) {
             e.printStackTrace();
             time.setText("Execution Time for SE: StrongBox unavailable");
         }
     }
 
-    public void saveInTEE() throws Exception{
+
+
+    public void saveStandard() throws Exception {
 
         long start = System.nanoTime();
 
         KeyPairGenerator keyPairGenerator = null;
 
-            keyPairGenerator = KeyPairGenerator.getInstance(
-                    KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
+        keyPairGenerator = KeyPairGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
 
         keyPairGenerator.initialize(
                 new KeyGenParameterSpec.Builder(
@@ -182,28 +169,16 @@ public class MainActivity extends AppCompatActivity {
 
         long finish = System.nanoTime();
         //for ms divide by 1000000
-        long timeElapsed = (finish - start)/1000000;
+        long timeElapsed = (finish - start) / 1000000;
 
         String secureHW = "";
-        if(keyInfo.isInsideSecureHardware()) {
+        if (keyInfo.isInsideSecureHardware()) {
             secureHW = "Key is inside secure hardware";
-        }else
-        {
+        } else {
             secureHW = "Key is NOT inside secure hardware";
         }
 
-        time.setText("Execution Time for TEE: " + timeElapsed + " ms" + "\n" + secureHW);
-    }
-
-
-    public void saveStandard() throws Exception {
-
-        long start = System.nanoTime();
-
-        long finish = System.nanoTime();
-        //for ms divide by 1000000
-        long timeElapsed = (finish - start)/1000000;
-        time.setText("Execution Time for software-only: " + timeElapsed + " ms");
+        time.setText("Execution Time without SE: " + timeElapsed + " ms" + "\n" + secureHW);
 
     }
 
