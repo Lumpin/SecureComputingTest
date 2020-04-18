@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="spinner_m">
+        <item>Message length 128 bytes</item>
+        <item>Message length 256 bytes</item>
+        <item>Message length 512 bytes</item>
+    </string-array>
+
+    <string-array name="spinner_algo">
+        <item>RSA 2048</item>
+        <item>AES 128</item>
+        <item>AES 256</item>
+        <item>ECDSA P-256</item>
+        <item>HMAC-SHA256 64 bytes</item>
+    </string-array>
+
+    <string-array name="spinner_use">
+        <item>Encryption</item>
+        <item>Decryption</item>
+        <item>Signature</item>
+        <item>Verification</item>
+    </string-array>
+
+    <string-array name="spinner_hw">
+        <item>Software-only</item>
+        <item>Trusted Execution Environment</item>
+        <item>Secure Element</item>
+    </string-array>
+</resources>
