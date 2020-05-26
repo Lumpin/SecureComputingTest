@@ -11,23 +11,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="163dp"
-        android:layout_marginTop="300dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:text="Create"
-        app:layout_constraintBottom_toTopOf="@+id/buttonSign"
+        app:layout_constraintBottom_toTopOf="@+id/spinnerM"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinnerUse"
         tools:text="Create" />
 
     <Button
         android:id="@+id/buttonSign"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="163dp"
+        android:layout_marginStart="160dp"
         android:layout_marginTop="10dp"
         android:text="USE"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonStart" />
+        app:layout_constraintTop_toBottomOf="@+id/spinnerUseKey" />
 
     <TextView
         android:id="@+id/time"
@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="44dp"
         android:layout_marginTop="8dp"
-        android:text="Exectuion time:"
+        android:text="Execution time:"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonSign" />
 
@@ -70,7 +70,7 @@
         android:layout_marginStart="1dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="1dp"
-        android:layout_marginBottom="86dp"
+        android:layout_marginBottom="20dp"
         android:spinnerMode="dropdown"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/buttonStart"
@@ -84,14 +84,14 @@
         android:layout_width="300dp"
         android:layout_height="24dp"
         android:layout_marginStart="1dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="30dp"
         android:layout_marginEnd="1dp"
         android:layout_marginBottom="10dp"
         android:spinnerMode="dropdown"
         app:layout_constraintBottom_toTopOf="@+id/spinnerHw"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinnerM"
+        app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
     <Spinner
@@ -99,15 +99,30 @@
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="50dp"
-        android:layout_marginTop="69dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="50dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="5dp"
         android:spinnerMode="dropdown"
-        app:layout_constraintBottom_toTopOf="@+id/spinnerAlgo"
+        app:layout_constraintBottom_toTopOf="@+id/spinnerUseKey"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonStart"
         tools:visibility="visible" />
+
+    <Spinner
+        android:id="@+id/spinnerUseKey"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginBottom="3dp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonSign"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinnerM" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
