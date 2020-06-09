@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string-array name="spinner_m">
-        <item>Message length 128 bytes</item>
-        <item>Message length 256 bytes</item>
-        <item>Message length 512 bytes</item>
-    </string-array>
-
+    
     <string-array name="spinner_algo">
         <item>RSA 2048</item>
         <item>AES 256</item>
@@ -31,4 +25,5 @@
         <item>Sign</item>
         <item>Verify</item>
     </string-array>
+
 </resources>

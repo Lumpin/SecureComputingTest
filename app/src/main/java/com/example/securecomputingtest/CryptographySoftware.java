@@ -17,24 +17,23 @@ public class CryptographySoftware {
         return "not implemented";
     }
 
-
     public static String createKeysHMAC(int usePos){
         return "not implemented";
     }
 
-    public static String useKeysRSA(int messagePos, int useKeyPos){
+    public static String useKeysRSA(int useKeyPos){
         return "not implemented";
     }
 
-    public static String useKeysAES(int messagePos, int useKeyPos){
+    public static String useKeysAES(int useKeyPos){
         return "not implemented";
     }
 
-    public static String useKeysECDSA(int messagePos, int useKeyPos){
+    public static String useKeysECDSA(int useKeyPos){
         return "not implemented";
     }
 
-    public static String userKeysHMAC(int messagePos, int useKeyPos){
+    public static String userKeysHMAC(int useKeyPos){
         return "not implemented";
     }
 }

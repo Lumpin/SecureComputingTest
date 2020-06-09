@@ -33,12 +33,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView time;
     private TextView textApplication;
 
-    private Spinner spinnerM;
     private Spinner spinnerAlgo;
     private Spinner spinnerUse;
     private Spinner spinnerHw;
     private Spinner spinnerUseKey;
-
 
 
     @Override
@@ -46,14 +44,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        spinnerM = (Spinner) findViewById(R.id.spinnerM);
         spinnerAlgo = (Spinner) findViewById(R.id.spinnerAlgo);
         spinnerUse = (Spinner) findViewById(R.id.spinnerUse);
         spinnerHw = (Spinner) findViewById(R.id.spinnerHw);
         spinnerUseKey = (Spinner) findViewById(R.id.spinnerUseKey);
 
-        ArrayAdapter<CharSequence> adapterM = ArrayAdapter.createFromResource(this,
-                R.array.spinner_m, android.R.layout.simple_spinner_item);
         ArrayAdapter<CharSequence> adapterAlgo = ArrayAdapter.createFromResource(this,
                 R.array.spinner_algo, android.R.layout.simple_spinner_item);
         ArrayAdapter<CharSequence> adapterUse = ArrayAdapter.createFromResource(this,
@@ -63,13 +58,11 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<CharSequence> adapterUseKey = ArrayAdapter.createFromResource(this,
                 R.array.spinner_usekey, android.R.layout.simple_spinner_item);
 
-        adapterM.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        adapterAlgo.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+         adapterAlgo.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         adapterUse.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         adapterHw.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         adapterUseKey.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        spinnerM.setAdapter(adapterM);
         spinnerAlgo.setAdapter(adapterAlgo);
         spinnerUse.setAdapter(adapterUse);
         spinnerHw.setAdapter(adapterHw);
@@ -149,35 +142,35 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     if (spinnerHw.getSelectedItemPosition() == 0) {
                         if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                            s = CryptographySoftware.useKeysRSA(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographySoftware.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                            s = CryptographySoftware.useKeysAES(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographySoftware.useKeysAES(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                            s = CryptographySoftware.useKeysECDSA(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographySoftware.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            s = CryptographySoftware.userKeysHMAC(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographySoftware.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
 
                     } else if (spinnerHw.getSelectedItemPosition() == 1) {
                         if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                            s = CryptographyTee.useKeysRSA(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographyTee.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                            s = CryptographyTee.useKeysAES(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographyTee.useKeysAES(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                            s = CryptographyTee.useKeysECDSA(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographyTee.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            s = CryptographyTee.userKeysHMAC(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographyTee.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
 
                     } else if (spinnerHw.getSelectedItemPosition() == 2) {
                         if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                            s = CryptographySe.useKeysRSA(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographySe.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                            s = CryptographySe.useKeysAES(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographySe.useKeysAES(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                            s = CryptographySe.useKeysECDSA(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographySe.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            s = CryptographySe.userKeysHMAC(spinnerM.getSelectedItemPosition(), spinnerUseKey.getSelectedItemPosition());
+                            s = CryptographySe.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
                     }
                     textApplication.setText(s);
