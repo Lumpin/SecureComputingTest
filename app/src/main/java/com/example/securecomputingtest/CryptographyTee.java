@@ -1,23 +1,16 @@
 package com.example.securecomputingtest;
 
 import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
 
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.Signature;
-import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 class CryptographyTee {
 
@@ -44,12 +37,6 @@ class CryptographyTee {
     private static byte[] macCreated = new byte[0];
     private static byte[] macDecrypted= new byte[0];
 
-
-    /**
-     * @param usePos
-     * @return
-     * @throws Exception
-     */
     static String createKeysRSA(int usePos) throws Exception {
 
         int keyUsage = 0;
@@ -86,11 +73,6 @@ class CryptographyTee {
 
     }
 
-    /**
-     * @param usePos
-     * @return
-     * @throws Exception
-     */
     static String createKeysAES(int usePos) throws Exception {
 
         String keyAlias = "keyTee" + "AES" + usePos;
@@ -99,8 +81,6 @@ class CryptographyTee {
         if (usePos == 0) {
             keyUsage = (KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
 
-        } else if (usePos == 1) {
-            s = "not supported";
         }
 
         long startGen = System.nanoTime();
@@ -116,8 +96,6 @@ class CryptographyTee {
 
         long stopGen = System.nanoTime();
         long timeGenKey = (stopGen - startGen) / 1000000;
-
-        s = "Generation time in TEE: " + timeGenKey + " ms of Key: " + keyAlias;
 
         return s;
     }
