@@ -12,7 +12,6 @@ public class CryptographySoftware {
         return "not implemented";
     }
 
-
     public static String createKeysECDSA(int usePos){
         return "not implemented";
     }
