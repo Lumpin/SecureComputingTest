@@ -2,30 +2,16 @@ package com.example.securecomputingtest;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyInfo;
-import android.security.keystore.KeyProperties;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -44,10 +30,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        spinnerAlgo = (Spinner) findViewById(R.id.spinnerAlgo);
-        spinnerUse = (Spinner) findViewById(R.id.spinnerUse);
-        spinnerHw = (Spinner) findViewById(R.id.spinnerHw);
-        spinnerUseKey = (Spinner) findViewById(R.id.spinnerUseKey);
+        spinnerAlgo =  findViewById(R.id.spinnerAlgo);
+        spinnerUse =  findViewById(R.id.spinnerUse);
+        spinnerHw =  findViewById(R.id.spinnerHw);
+        spinnerUseKey =  findViewById(R.id.spinnerUseKey);
 
         ArrayAdapter<CharSequence> adapterAlgo = ArrayAdapter.createFromResource(this,
                 R.array.spinner_algo, android.R.layout.simple_spinner_item);
@@ -68,9 +54,9 @@ public class MainActivity extends AppCompatActivity {
         spinnerHw.setAdapter(adapterHw);
         spinnerUseKey.setAdapter(adapterUseKey);
 
-        time = (TextView) findViewById(R.id.time);
-        textApplication = (TextView) findViewById(R.id.textApplication);
-        Button buttonStart = (Button) findViewById(R.id.buttonStart);
+        time =  findViewById(R.id.time);
+        textApplication =  findViewById(R.id.textApplication);
+        Button buttonStart =  findViewById(R.id.buttonStart);
 
         /*
             button for creating keys
@@ -79,49 +65,60 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                String s = "";
+                long[] duration = new long[10];
                 try {
                     {
                         if (spinnerHw.getSelectedItemPosition() == 0) {
 
                             if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                                s = CryptographySoftware.createKeysRSA(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographySoftware.createKeysRSA(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                                s = CryptographySoftware.createKeysAES(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographySoftware.createKeysAES(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                                s = CryptographySoftware.createKeysECDSA(spinnerUse.getSelectedItemPosition());
+                               duration = CryptographySoftware.createKeysECDSA(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                                s = CryptographySoftware.createKeysHMAC(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographySoftware.createKeysHMAC(spinnerUse.getSelectedItemPosition());
                             }
 
                         } else if (spinnerHw.getSelectedItemPosition() == 1) {
 
                             if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                                s = CryptographyTee.createKeysRSA(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographyTee.createKeysRSA(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                                s = CryptographyTee.createKeysAES(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographyTee.createKeysAES(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                                s = CryptographyTee.createKeysECDSA(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographyTee.createKeysECDSA(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                                s = CryptographyTee.createKeysHMAC(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographyTee.createKeysHMAC(spinnerUse.getSelectedItemPosition());
 
                             }
 
                         } else if (spinnerHw.getSelectedItemPosition() == 2) {
 
                             if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                                s = CryptographySe.createKeysRSA(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographySe.createKeysRSA(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                                s = CryptographySe.createKeysAES(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographySe.createKeysAES(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                                s = CryptographySe.createKeysECDSA(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographySe.createKeysECDSA(spinnerUse.getSelectedItemPosition());
                             } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                                s = CryptographySe.createKeysHMAC(spinnerUse.getSelectedItemPosition());
+                                duration = CryptographySe.createKeysHMAC(spinnerUse.getSelectedItemPosition());
                             }
                         }
 
                     }
-                    time.setText(s);
+                    long avgDuration = 0;
+                    for(int i = 0; i< 10; i++){
+                        assert duration != null;
+                        avgDuration = avgDuration + duration[i];
+                    }
+                    avgDuration = avgDuration/10;
+
+                    String text ="";
+                   for(int j = 0; j < duration.length; j++) {
+                       text = text + "\n " + duration[j];
+                   }
+                    time.setText(text);
                 } catch (Exception e) {
                     time.setText(e.getMessage());
                 }
@@ -136,44 +133,57 @@ public class MainActivity extends AppCompatActivity {
          */
         buttonSign.setOnClickListener(new View.OnClickListener() {
 
+            @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View v) {
-                String s = "";
+                long[]  duration = new long[10];
                 try {
                     if (spinnerHw.getSelectedItemPosition() == 0) {
                         if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                            s = CryptographySoftware.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySoftware.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                            s = CryptographySoftware.useKeysAES(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySoftware.useKeysAES(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                            s = CryptographySoftware.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySoftware.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            s = CryptographySoftware.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySoftware.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
 
                     } else if (spinnerHw.getSelectedItemPosition() == 1) {
                         if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                            s = CryptographyTee.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographyTee.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                            s = CryptographyTee.useKeysAES(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographyTee.useKeysAES(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                            s = CryptographyTee.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographyTee.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            s = CryptographyTee.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographyTee.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
 
                     } else if (spinnerHw.getSelectedItemPosition() == 2) {
                         if (spinnerAlgo.getSelectedItemPosition() == 0) {
-                            s = CryptographySe.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySe.useKeysRSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 1) {
-                            s = CryptographySe.useKeysAES(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySe.useKeysAES(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
-                            s = CryptographySe.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySe.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            s = CryptographySe.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySe.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
                     }
-                    textApplication.setText(s);
+
+                    long avgDuration = 0;
+                    for(int i = 0; i< 10; i++){
+                        assert duration != null;
+                        avgDuration = avgDuration + duration[i];
+                    }
+                    avgDuration = avgDuration/10;
+
+                    String text ="";
+                    for(int j = 0; j < duration.length; j++) {
+                        text = text + "\n " + duration[j];
+                    }
+                    textApplication.setText(text);
                 } catch (Exception e) {
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "an exception was thrown", e);

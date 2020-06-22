@@ -2,11 +2,15 @@ package com.example.securecomputingtest;
 
 
 import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
 
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
 import java.security.Signature;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -19,61 +23,47 @@ public class CryptographySe {
     private static KeyPair keyPairSeECDSA;
     private static SecretKey keySeHMAC;
     private static SecretKey keySeAES;
-    private static String s = "";
     private static String keyProperties = null;
 
-    static byte[] signatureCreatedRSA = new byte[0];
-    static byte[] signatureCreatedECDSA = new byte[0];
+    private static byte[] signatureCreatedRSA = new byte[0];
+    private static byte[] signatureCreatedECDSA = new byte[0];
 
     private static byte[] cipherCreatedRSA = new byte[0];
-    private static byte[] cipherDecryptedRSA = new byte[0];
-
-    private static byte[] cipherCreatedEC = new byte[0];
-    private static byte[] cipherDecryptedEC = new byte[0];
-
 
     private static byte[] cipherCreatedAES = new byte[0];
-    private static byte[] cipherDecryptedAES = new byte[0];
-
 
     private static byte[] macCreated = new byte[0];
-    private static byte[] macDecrypted= new byte[0];
 
     // keygen arrays
-    public int keyGenRsaSeEnc[] = new int[10];
-    public int keyGenRsaSeSig[] = new int[10];
+    public static long[] keyGenRsaSeEnc = new long[10];
+    public static long[] keyGenRsaSeSig = new long[10];
 
-    public int keyGenAesSeEnc[] = new int[10];
+    public static long[] keyGenAesSeEnc = new long[10];
 
-    public int keyGenEcSeEnc[] = new int[10];
+    public static long[] keyGenEcSeEnc = new long[10];
 
-    public int keyGenHmacSeEnc[] = new int[10];
+    public static long[] keyGenHmacSeEnc = new long[10];
 
     //keyuse arrays
-    public int keyUseRsaSeEnc[] = new int[10];
-    public int keyUseRsaSeDec[] = new int[10];
-    public int keyUseRsaSeSig[] = new int[10];
-    public int keyUseRsaSeVer[] = new int[10];
+    public static long[] keyUseRsaSeEnc = new long[10];
+    public static long[] keyUseRsaSeDec = new long[10];
+    public static long[] keyUseRsaSeSig = new long[10];
+    public static long[] keyUseRsaSeVer = new long[10];
 
-    public int keyUseAesSeEnc[] = new int[10];
-    public int keyUseAesSeDec[] = new int[10];
+    public static long[] keyUseAesSeEnc = new long[10];
+    public static long[] keyUseAesSeDec = new long[10];
 
-    public int keyUseEcSeEnc[] = new int[10];
-    public int keyUseEcSeDec[] = new int[10];
+    public static long[] keyUseEcSeEnc = new long[10];
+    public static long[] keyUseEcSeDec = new long[10];
 
-    public int keyUseHmacSeEnc[] = new int[10];
-    public int keyUseHmacSeDec[] = new int[10];
+    public static long[] keyUseHmacSeEnc = new long[10];
+    public static long[] keyUseHmacSeDec = new long[10];
 
-    /**
-     *
-     * @param usePos
-     * @return
-     * @throws Exception
-     */
-    public static String createKeysRSA(int usePos) throws Exception{
+
+    static long[] createKeysRSA(int usePos) throws Exception {
+
         int keyUsage = 0;
         String keyAlias = "keySe" + "RSA" + usePos;
-
         keyProperties = KeyProperties.KEY_ALGORITHM_RSA;
 
         if (usePos == 0) {
@@ -82,52 +72,68 @@ public class CryptographySe {
             keyUsage = (KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY);
         }
 
-        long startGen = System.nanoTime();
+        long timeGenKey;
+        for (int i = 0; i < 10; i++) {
 
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(
-                keyProperties, "AndroidKeyStore");
+            long startGen = System.nanoTime();
 
-        keyPairGenerator.initialize(
-                new KeyGenParameterSpec.Builder(
-                        keyAlias,
-                        keyUsage).setDigests(KeyProperties.DIGEST_SHA256,
-                        KeyProperties.DIGEST_SHA512)
-                        .setEncryptionPaddings(
-                                KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-                        .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
-                        .setIsStrongBoxBacked(true)
-                        .build());
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(
+                    keyProperties, "AndroidKeyStore");
+            keyPairGenerator.initialize(
+                    new KeyGenParameterSpec.Builder(
+                            keyAlias,
+                            keyUsage).setDigests(KeyProperties.DIGEST_SHA256,
+                            KeyProperties.DIGEST_SHA512)
+                            .setEncryptionPaddings(
+                                    KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+                            .setKeySize(2048)
+                            .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
+                            .setIsStrongBoxBacked(true)
+                            .build());
+            keyPairSeRSA = keyPairGenerator.generateKeyPair();
 
-        keyPairSeRSA = keyPairGenerator.generateKeyPair();
+            long stopGen = System.nanoTime();
+            timeGenKey = (stopGen - startGen);
 
-        long stopGen = System.nanoTime();
-
-        long timeGenKey = (stopGen - startGen);
-
-        s = "Generation time in SE: " + timeGenKey + " ns of Key: " + keyAlias;
-
-        return s;
-    }
-
-    /**
-     *
-     * @param usePos
-     * @return
-     * @throws Exception
-     */
-    public static String createKeysAES(int usePos){
-
-        try {
-            String keyAlias = "keySe" + "AES" + usePos;
-            int keyUsage = 0;
-
-            if (usePos == 0) {
-                keyUsage = (KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
-
-            } else if (usePos == 1) {
-                s = "not supported";
+            PrivateKey key = keyPairSeRSA.getPrivate();
+            KeyFactory factory = KeyFactory.getInstance(key.getAlgorithm(), "AndroidKeyStore");
+            KeyInfo keyInfo;
+            try {
+                keyInfo = factory.getKeySpec(key, KeyInfo.class);
+                System.out.println("SE" + keyInfo.isInsideSecureHardware());
+            } catch (InvalidKeySpecException e) {
+                // Not an Android KeyStore key.
             }
 
+            if (usePos == 0) {
+                keyGenRsaSeEnc[i] = timeGenKey;
+            } else if (usePos == 1) {
+                keyGenRsaSeSig[i] = timeGenKey;
+            }
+
+        }
+        if (usePos == 0) {
+            return keyGenRsaSeEnc;
+        } else if (usePos == 1) {
+            return keyGenRsaSeSig;
+        }
+        return null;
+    }
+
+
+    static long[] createKeysAES(int usePos) throws Exception {
+
+        String keyAlias = "keySe" + "AES" + usePos;
+        int keyUsage = 0;
+
+        if (usePos == 0) {
+            keyUsage = (KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
+
+        }
+
+        long timeGenKey;
+
+        for (int i = 0; i < 10; i++) {
             long startGen = System.nanoTime();
             KeyGenerator keyGenerator = KeyGenerator.getInstance(
                     KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
@@ -141,409 +147,300 @@ public class CryptographySe {
             keySeAES = keyGenerator.generateKey();
 
             long stopGen = System.nanoTime();
-            long timeGenKey = (stopGen - startGen);
+            timeGenKey = (stopGen - startGen);
 
-            s = "Generation time in SE: " + timeGenKey + " ns of Key: " + keyAlias;
+            keyGenAesSeEnc[i] = timeGenKey;
+        }
 
-            return s;
-        }
-         catch (Exception e)
-        {
-            e.printStackTrace();
-            return String.valueOf(e);
-        }
+        return keyGenAesSeEnc;
     }
 
 
-    /**
-     *
-     * @param usePos
-     * @return
-     * @throws Exception
-     */
-    public static String createKeysECDSA(int usePos) throws Exception{
+    static long[] createKeysECDSA(int usePos) throws Exception {
+
         int keyUsage = 0;
         String keyAlias = "keySe" + "ECDSA" + usePos;
 
         keyProperties = KeyProperties.KEY_ALGORITHM_EC;
 
-        if (usePos == 0) {
-            keyUsage = (KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
-        } else if (usePos == 1) {
+        if (usePos == 1) {
             keyUsage = (KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY);
         }
 
-        long startGen = System.nanoTime();
+        long timeGenKey;
 
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(
-                keyProperties, "AndroidKeyStore");
+        for (int i = 0; i < 10; i++) {
+            long startGen = System.nanoTime();
 
-        keyPairGenerator.initialize(
-                new KeyGenParameterSpec.Builder(
-                        keyAlias,
-                        keyUsage).setDigests(KeyProperties.DIGEST_SHA256,
-                        KeyProperties.DIGEST_SHA512)
-                        .setIsStrongBoxBacked(true)
-                        .build());
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(
+                    keyProperties, "AndroidKeyStore");
 
-        keyPairSeECDSA = keyPairGenerator.generateKeyPair();
+            keyPairGenerator.initialize(
+                    new KeyGenParameterSpec.Builder(
+                            keyAlias,
+                            keyUsage).setDigests(KeyProperties.DIGEST_SHA256,
+                            KeyProperties.DIGEST_SHA512)
+                            .setKeySize(256)
+                            .setIsStrongBoxBacked(true)
+                            .build());
 
-        long stopGen = System.nanoTime();
+            keyPairSeECDSA = keyPairGenerator.generateKeyPair();
+            long stopGen = System.nanoTime();
+            timeGenKey = (stopGen - startGen);
 
-        long timeGenKey = (stopGen - startGen);
+            keyGenEcSeEnc[i] = timeGenKey;
 
-        s = "Generation time in SE: " + timeGenKey + " ns of Key: " + keyAlias;
+        }
 
-        return s;
+        return keyGenEcSeEnc;
+
     }
 
 
-    /**
-     *
-     * @param usePos
-     * @return
-     * @throws Exception
-     */
-    public static String createKeysHMAC(int usePos) throws Exception{
+    static long[] createKeysHMAC(int usePos) throws Exception {
+
         String keyAlias = "keySe" + "HMAC" + usePos;
         int keyUsage = 0;
 
-        if (usePos == 0) {
-            s = "not supported";
-        } else if (usePos == 1) {
+        if (usePos == 1) {
             keyUsage = (KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY);
         }
 
-        long startGen = System.nanoTime();
+        long timeGenKey;
+        for (int i = 0; i < 10; i++) {
 
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(
-                KeyProperties.KEY_ALGORITHM_HMAC_SHA256, "AndroidKeyStore");
-        keyGenerator.init(
-                new KeyGenParameterSpec.Builder(keyAlias, keyUsage)
-                        .setIsStrongBoxBacked(true)
-                        .build());
-        keySeHMAC = keyGenerator.generateKey();
-        Mac mac = Mac.getInstance("HmacSHA256");
-        mac.init(keySeHMAC);
+            long startGen = System.nanoTime();
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(
+                    KeyProperties.KEY_ALGORITHM_HMAC_SHA256, "AndroidKeyStore");
+            keyGenerator.init(
+                    new KeyGenParameterSpec.Builder(keyAlias, keyUsage)
+                            .setIsStrongBoxBacked(true)
+                            .build());
+            keySeHMAC = keyGenerator.generateKey();
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(keySeHMAC);
 
-        long stopGen = System.nanoTime();
-        long timeGenKey = (stopGen - startGen);
+            long stopGen = System.nanoTime();
+            timeGenKey = (stopGen - startGen);
 
-        s = "Generation time in SE: " + timeGenKey + " ns of Key: " + keyAlias;
+            keyGenHmacSeEnc[i] = timeGenKey;
+        }
 
-        return s;
+        return keyGenHmacSeEnc;
     }
 
-    public static String useKeysRSA(int useKeyPos) throws Exception{
+
+    static long[] useKeysRSA(int useKeyPos) {
 
         try {
 
-            int useKey = 0;
-            byte data[] = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
+            byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
                     (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1};
-            boolean valid = false;
-            String instance = "";
 
-            System.out.println(data.toString());
+            String instance = "SHA256withRSA";
 
-            if (useKeyPos == 0 || useKeyPos == 1) {
-                useKey = 0;
-            } else if (useKeyPos == 2 || useKeyPos == 3) {
-                useKey = 1;
-            }
-
-            String keyAlias = "keySe" + "RSA" + useKey;
-
-            instance = "SHA256withRSA";
-
-            /********** using key **********************************************/
-            long start = System.nanoTime();
+            long start;
             long stop = System.nanoTime();
 
             if (useKeyPos == 0) {
-                start = System.nanoTime();
-                Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-                cipher.init(cipher.ENCRYPT_MODE, keyPairSeRSA.getPublic());
+                for (int i = 0; i < 10; i++) {
 
-                cipherCreatedRSA = cipher.doFinal(data);
-                stop = System.nanoTime();
+                    start = System.nanoTime();
+                    Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                    cipher.init(Cipher.ENCRYPT_MODE, keyPairSeRSA.getPublic());
 
+                    cipherCreatedRSA = cipher.doFinal(data);
+                    stop = System.nanoTime();
+
+                    keyUseRsaSeEnc[i] = (stop - start);
+
+                }
+                return keyUseRsaSeEnc;
             } else if (useKeyPos == 1) {
-                start = System.nanoTime();
-                Cipher cipher2 = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-                cipher2.init(cipher2.DECRYPT_MODE,keyPairSeRSA.getPrivate());
+                for (int i = 0; i < 10; i++) {
+                    start = System.nanoTime();
+                    Cipher cipher2 = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                    cipher2.init(Cipher.DECRYPT_MODE, keyPairSeRSA.getPrivate());
 
-                cipherDecryptedRSA = cipher2.doFinal(cipherCreatedRSA);
-                stop = System.nanoTime();
+                    cipher2.doFinal(cipherCreatedRSA);
+                    stop = System.nanoTime();
+                    keyUseRsaSeDec[i] = (stop - start);
+
+                }
+                return keyUseRsaSeDec;
             } else if (useKeyPos == 2) {
-                start = System.nanoTime();
-                Signature signature = Signature.getInstance(instance);
-                signature.initSign(keyPairSeRSA.getPrivate());
+                for (int i = 0; i < 10; i++) {
+                    start = System.nanoTime();
+                    Signature signature = Signature.getInstance(instance);
+                    signature.initSign(keyPairSeRSA.getPrivate());
 
-                signature.update(data);
-                signatureCreatedRSA = signature.sign();
-                stop = System.nanoTime();
+                    signature.update(data);
+                    signatureCreatedRSA = signature.sign();
+                    keyUseRsaSeSig[i] = (stop - start);
+
+                }
+                return keyUseRsaSeSig;
+
             } else if (useKeyPos == 3) {
-                start = System.nanoTime();
-                Signature signature = Signature.getInstance(instance);
-                signature.initVerify(keyPairSeRSA.getPublic());
+                for (int i = 0; i < 10; i++) {
+                    start = System.nanoTime();
+                    Signature signature = Signature.getInstance(instance);
+                    signature.initVerify(keyPairSeRSA.getPublic());
 
-                signature.update(data);
-                valid = signature.verify(signatureCreatedRSA);
-                stop = System.nanoTime();
+                    signature.update(data);
+                    signature.verify(signatureCreatedRSA);
+                    stop = System.nanoTime();
+                    keyUseRsaSeVer[i] = (stop - start);
+
+                }
+                return keyUseRsaSeVer;
             }
 
 
-            /************* String generation ***********************************************************************/
-            //forns divide by 1000000
-            long timeSig = (stop - start);
-
-
-            if (useKeyPos == 0) {
-                s = keyAlias
-                        + "Time for enc entry '123': " + timeSig + " ns \n" + "\n"
-                        + "Created enc";
-
-            } else if (useKeyPos == 1) {
-                s=    keyAlias
-                        + "Time for dec entry '123': " + timeSig + " ns \n"
-                        + "data is decrypted: ";
-            } else if (useKeyPos == 2) {
-                s = keyAlias
-                        + "Time for signing entry '123': " + timeSig + " ns \n" + "\n"
-                        + "Created signature";
-            } else if (useKeyPos == 3) {
-                s = keyAlias
-                        + "Time for verifying entry '123': " + timeSig + " ns \n"
-                        + "data is valid: " + valid;
-            }
-            return s;
         } catch (Exception e) {
             e.printStackTrace();
-            return "error";
         }
+        return null;
     }
 
-    public static String useKeysAES(int useKeyPos){
+    static long[] useKeysAES(int useKeyPos) {
         try {
-            int useKey = 0;
-            byte data[] = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
+
+            byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
                     (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1};
-            boolean valid = false;
 
-            System.out.println(data.toString());
 
-            if (useKeyPos == 0 || useKeyPos == 1) {
-                useKey = 0;
-            } else if (useKeyPos == 2 || useKeyPos == 3) {
-                useKey = 1;
-            }
-
-            String keyAlias = "keySe" + "AES" + useKey;
-
-            long start = System.nanoTime();
-            long stop = System.nanoTime();
+            long start;
+            long stop;
 
             if (useKeyPos == 3) {
-                start = System.nanoTime();
-                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
-                cipher.init(cipher.ENCRYPT_MODE,  keySeAES);
 
-                cipherCreatedAES = cipher.doFinal(data);
-                stop = System.nanoTime();
+                for (int i = 0; i < 10; i++) {
+                    start = System.nanoTime();
+                    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+                    cipher.init(Cipher.ENCRYPT_MODE, keySeAES);
+
+                    cipherCreatedAES = cipher.doFinal(data);
+                    stop = System.nanoTime();
+
+                    keyUseAesSeEnc[i] = (stop - start);
+                }
+                return keyUseAesSeEnc;
 
             } else if (useKeyPos == 4) {
-                start = System.nanoTime();
-                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
-                cipher.init(cipher.DECRYPT_MODE, keySeAES);
 
-                cipherDecryptedAES = cipher.doFinal(cipherCreatedAES);
-                stop = System.nanoTime();
+                for (int i = 0; i < 10; i++) {
+                    start = System.nanoTime();
+                    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+                    cipher.init(Cipher.DECRYPT_MODE, keySeAES);
+
+                    cipher.doFinal(cipherCreatedAES);
+                    stop = System.nanoTime();
+
+                    keyUseAesSeDec[i] = (stop - start);
+                }
+                return keyUseAesSeDec;
+
             }
-
-            //forns divide by 1000000
-            long timeSig = (stop - start);
-
-
-            if (useKeyPos == 0) {
-                s =       keyAlias+
-                        "Key: " + keySeAES.toString() + "\n"
-                        + "Time for enc entry '123': " + timeSig + " ns \n" + "\n"
-                        + "Created enc";
-
-            } else if (useKeyPos == 1) {
-                s = keyAlias+
-                        "Key: " + keySeAES.toString() + "\n"
-                        + "Time for dec entry '123': " + timeSig + " ns \n"
-                        + "data is decrypted: ";
-            } else if (useKeyPos == 2) {
-                s = "not supported";
-            } else if (useKeyPos == 3) {
-                s = "not supported";
-            }
-            return s;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "error";
+
         }
+        return null;
     }
 
-    /**
-     *
-     * @param useKeyPos
-     * @return
-     * @throws Exception
-     */
-    public static String useKeysECDSA(int useKeyPos){
-
+    static long[] useKeysECDSA(int useKeyPos) {
         try {
 
-            /*********************************************************************************************/
-            int useKey = 0;
-            byte data[] = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
+            byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
                     (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1};
-            boolean valid = false;
-            String instanceSign = "";
 
-            if (useKeyPos == 0 || useKeyPos == 1) {
-                useKey = 0;
-            } else if (useKeyPos == 2 || useKeyPos == 3) {
-                useKey = 1;
-            }
+            String instanceSign = "SHA256withECDSA";
 
-            String keyAlias = "keySe" + "ECDSA" + useKey;
+            long start;
+            long stop;
 
-            instanceSign = "SHA256withECDSA";
+            if (useKeyPos == 2) {
+                for (int i = 0; i < 10; i++) {
+                    start = System.nanoTime();
+                    Signature signature = Signature.getInstance(instanceSign);
+                    signature.initSign(keyPairSeECDSA.getPrivate());
 
+                    signature.update(data);
+                    signatureCreatedECDSA = signature.sign();
+                    stop = System.nanoTime();
 
-            /********** using key **********************************************/
-            long start = System.nanoTime();
+                    keyUseEcSeEnc[i] = (stop - start);
+                }
 
-            long stop = System.nanoTime();
-
-            if (useKeyPos == 0) {
-
-
-            } else if (useKeyPos == 1) {
-
-            } else if (useKeyPos == 2) {
-                start = System.nanoTime();
-                Signature signature = Signature.getInstance(instanceSign);
-                signature.initSign(keyPairSeECDSA.getPrivate());
-
-                signature.update(data);
-                signatureCreatedECDSA = signature.sign();
-                stop = System.nanoTime();
+                return keyUseEcSeEnc;
 
             } else if (useKeyPos == 3) {
-                start = System.nanoTime();
-                Signature signature = Signature.getInstance(instanceSign);
-                signature.initVerify(keyPairSeECDSA.getPublic());
+                for (int i = 0; i < 10; i++) {
+                    start = System.nanoTime();
+                    Signature signature = Signature.getInstance(instanceSign);
+                    signature.initVerify(keyPairSeECDSA.getPublic());
 
-                signature.update(data);
-                valid = signature.verify(signatureCreatedECDSA);
-                stop = System.nanoTime();
+                    signature.update(data);
+                    signature.verify(signatureCreatedECDSA);
+                    stop = System.nanoTime();
 
+                    keyUseEcSeDec[i] = (stop - start);
+                }
+                return keyUseEcSeDec;
             }
 
 
-            /************* String generation ***********************************************************************/
-            //forns divide by 1000000
-            long timeSig = (stop - start) / 1000000;
-
-
-            if (useKeyPos == 0) {
-
-            } else if (useKeyPos == 1) {
-
-            } else if (useKeyPos == 2) {
-                s = keyAlias
-                        + "Time for signing entry '123': " + timeSig + "ns \n" + "\n"
-                        + "Created signature";
-            } else if (useKeyPos == 3) {
-                s = keyAlias
-                        + "Time for verifying entry '123': " + timeSig + "ns \n"
-                        + "data is valid: " + valid;
-            }
-            return s;
         } catch (Exception e) {
-
             e.printStackTrace();
-            return "Error";
         }
+        return null;
+
     }
 
-    public static String userKeysHMAC(int useKeyPos){
+    static long[] userKeysHMAC(int useKeyPos) {
         try {
 
-            /*********************************************************************************************/
-            int useKey = 0;
-            byte data[] = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
+            byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
                     (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1};
-            boolean valid = false;
-
-            if (useKeyPos == 0 || useKeyPos == 1) {
-                useKey = 0;
-            } else if (useKeyPos == 2 || useKeyPos == 3) {
-                useKey = 1;
-            }
-
-            String keyAlias = "keyTee" + "HMAC" + useKey;
 
 
+            long start;
+            long stop;
 
-            long start = System.nanoTime();
-            long stop = System.nanoTime();
+            if (useKeyPos == 2) {
 
-            if (useKeyPos == 0) {
+                for (int i = 0; i < 10; i++) {
 
+                    start = System.nanoTime();
+                    Mac mac = Mac.getInstance("HmacSHA256");
+                    mac.init(keySeHMAC);
+                    macCreated = mac.doFinal(data);
+                    stop = System.nanoTime();
 
-            } else if (useKeyPos == 1) {
-
-            } else if (useKeyPos == 2) {
-                start = System.nanoTime();
-                Mac mac = Mac.getInstance("HmacSHA256");
-                mac.init(keySeHMAC);
-
-
-                macCreated = mac.doFinal(data);
-                stop = System.nanoTime();
+                    keyUseHmacSeEnc[i] = (stop - start);
+                }
+                return keyUseHmacSeEnc;
 
             } else if (useKeyPos == 3) {
-                start = System.nanoTime();
-                Mac mac = Mac.getInstance("HmacSHA256");
 
-                mac.init(keySeHMAC);
-                macDecrypted = mac.doFinal(macCreated);
-                stop = System.nanoTime();
+                for (int i = 0; i < 10; i++) {
+                    start = System.nanoTime();
+                    Mac mac = Mac.getInstance("HmacSHA256");
+
+                    mac.init(keySeHMAC);
+                    mac.doFinal(macCreated);
+                    stop = System.nanoTime();
+
+                    keyUseHmacSeDec[i] = (stop - start);
+                }
+                return keyUseHmacSeDec;
             }
 
-
-            /************* String generation ***********************************************************************/
-            //forns divide by 1000000
-            long timeSig = (stop - start) / 1000000;
-
-
-            if (useKeyPos == 0) {
-
-            } else if (useKeyPos == 1) {
-
-            } else if (useKeyPos == 2) {
-                s = keyAlias
-                        + "Time for signing entry '123': " + timeSig + "ns \n" + "\n"
-                        + "Created mac";
-            } else if (useKeyPos == 3) {
-                s = keyAlias
-                        + "Time for verifying entry '123': " + timeSig + "ns \n"
-                        + "data is valid: " ;
-            }
-            return s;
         } catch (Exception e) {
-
             e.printStackTrace();
-            return "Error";
         }
-
+        return null;
     }
 }
