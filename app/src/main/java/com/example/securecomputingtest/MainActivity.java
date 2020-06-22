@@ -107,12 +107,6 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                     }
-                    long avgDuration = 0;
-                    for(int i = 0; i< 10; i++){
-                        assert duration != null;
-                        avgDuration = avgDuration + duration[i];
-                    }
-                    avgDuration = avgDuration/10;
 
                     String text ="";
                    for(int j = 0; j < duration.length; j++) {
@@ -171,13 +165,6 @@ public class MainActivity extends AppCompatActivity {
                             duration = CryptographySe.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
                     }
-
-                    long avgDuration = 0;
-                    for(int i = 0; i< 10; i++){
-                        assert duration != null;
-                        avgDuration = avgDuration + duration[i];
-                    }
-                    avgDuration = avgDuration/10;
 
                     String text ="";
                     for(int j = 0; j < duration.length; j++) {

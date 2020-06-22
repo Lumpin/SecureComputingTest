@@ -15,6 +15,7 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 class CryptographyTee {
 
@@ -139,8 +140,9 @@ class CryptographyTee {
             keyGenerator.init(
                     new KeyGenParameterSpec.Builder(keyAlias, keyUsage)
                             .setKeySize(256)
-                            .setDigests(KeyProperties.DIGEST_SHA256)
+                            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                            .setRandomizedEncryptionRequired(false)
                             .setIsStrongBoxBacked(false)
                             .build());
             keyTeeAES = keyGenerator.generateKey();
@@ -239,7 +241,7 @@ class CryptographyTee {
             String instance = "SHA256withRSA";
 
             long start;
-            long stop = System.nanoTime();
+            long stop;
 
             if (useKeyPos == 0) {
                 for (int i = 0; i < 10; i++) {
@@ -276,6 +278,7 @@ class CryptographyTee {
 
                     signature.update(data);
                     signatureCreatedRSA = signature.sign();
+                    stop = System.nanoTime();
                     keyUseRsaTeeSig[i] = (stop - start);
 
                 }
@@ -313,31 +316,38 @@ class CryptographyTee {
             long start;
             long stop;
 
-            if (useKeyPos == 3) {
+            byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            IvParameterSpec ivspec = new IvParameterSpec(iv);
+
+            if (useKeyPos == 0) {
 
                 for (int i = 0; i < 10; i++) {
+
                     start = System.nanoTime();
+
                     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
-                    cipher.init(Cipher.ENCRYPT_MODE, keyTeeAES);
-
+                    cipher.init(Cipher.ENCRYPT_MODE, keyTeeAES, ivspec);
                     cipherCreatedAES = cipher.doFinal(data);
-                    stop = System.nanoTime();
 
+                    stop = System.nanoTime();
                     keyUseAesTeeEnc[i] = (stop - start);
+
                 }
                 return keyUseAesTeeEnc;
 
-            } else if (useKeyPos == 4) {
+            } else if (useKeyPos == 1) {
 
                 for (int i = 0; i < 10; i++) {
+
                     start = System.nanoTime();
+
                     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
-                    cipher.init(Cipher.DECRYPT_MODE, keyTeeAES);
-
+                    cipher.init(Cipher.DECRYPT_MODE, keyTeeAES, ivspec);
                     cipher.doFinal(cipherCreatedAES);
-                    stop = System.nanoTime();
 
+                    stop = System.nanoTime();
                     keyUseAesTeeDec[i] = (stop - start);
+
                 }
                 return keyUseAesTeeDec;
 

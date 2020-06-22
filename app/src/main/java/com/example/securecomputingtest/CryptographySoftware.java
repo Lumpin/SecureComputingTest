@@ -8,12 +8,18 @@ import android.security.keystore.KeyProperties;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
+import java.security.Security;
 import java.security.Signature;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 class CryptographySoftware {
 
@@ -78,7 +84,7 @@ class CryptographySoftware {
 
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
 
-            keyPairGenerator.initialize( new KeyGenParameterSpec.Builder(
+            keyPairGenerator.initialize(new KeyGenParameterSpec.Builder(
                     keyAlias,
                     keyUsage).setDigests(KeyProperties.DIGEST_SHA256,
                     KeyProperties.DIGEST_SHA512)
@@ -93,17 +99,15 @@ class CryptographySoftware {
             long stopGen = System.nanoTime();
             timeGenKey = (stopGen - startGen);
 
-         if (usePos == 0) {
+            if (usePos == 0) {
                 keyGenRsaSwEnc[i] = timeGenKey;
             } else if (usePos == 1) {
                 keyGenRsaSwSig[i] = timeGenKey;
             }
         }
         if (usePos == 0) {
-            BenchmarkingResults.storeResults(keyGenRsaSwEnc, "Generation" + keyAlias);
             return keyGenRsaSwEnc;
         } else if (usePos == 1) {
-            BenchmarkingResults.storeResults(keyGenRsaSwSig, "Generation" + keyAlias);
             return keyGenRsaSwSig;
         }
         return null;
@@ -125,11 +129,7 @@ class CryptographySoftware {
         for (int i = 0; i < 10; i++) {
             long startGen = System.nanoTime();
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-            keyGenerator.init(new KeyGenParameterSpec.Builder(keyAlias, keyUsage)
-                    .setKeySize(256)
-                    .setDigests(KeyProperties.DIGEST_SHA256)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                    .build());
+            keyGenerator.init(256);
             keySwAES = keyGenerator.generateKey();
 
             long stopGen = System.nanoTime();
@@ -147,28 +147,35 @@ class CryptographySoftware {
         int keyUsage = 0;
         String keyAlias = "keySw" + "ECDSA" + usePos;
 
-        keyProperties = KeyProperties.KEY_ALGORITHM_EC;
-
         if (usePos == 1) {
             keyUsage = (KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY);
         }
 
+        keyProperties = KeyProperties.KEY_ALGORITHM_EC;
+
         long timeGenKey;
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
         for (int i = 0; i < 10; i++) {
             long startGen = System.nanoTime();
 
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyProperties);
-
+            ECGenParameterSpec namedParamSpec = new ECGenParameterSpec("secp256k1");
+            keyPairGenerator.initialize(namedParamSpec);
+            /*
+            //see https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec - but does not work anymore apparently
             keyPairGenerator.initialize(
                     new KeyGenParameterSpec.Builder(
                             keyAlias,
-                            keyUsage).setDigests(KeyProperties.DIGEST_SHA256,
-                            KeyProperties.DIGEST_SHA512)
-                            .setKeySize(256)
+                            keyUsage).setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
+                            .setDigests(KeyProperties.DIGEST_SHA256,
+                                    KeyProperties.DIGEST_SHA512)
+                          //  .setKeySize(256)
                             .build());
+               */
 
             keyPairSwECDSA = keyPairGenerator.generateKeyPair();
+
             long stopGen = System.nanoTime();
             timeGenKey = (stopGen - startGen);
 
@@ -191,6 +198,8 @@ class CryptographySoftware {
         }
 
         long timeGenKey;
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+
         for (int i = 0; i < 10; i++) {
 
             long startGen = System.nanoTime();
@@ -259,6 +268,7 @@ class CryptographySoftware {
 
                     signature.update(data);
                     signatureCreatedRSA = signature.sign();
+                    stop = System.nanoTime();
                     keyUseRsaSwSig[i] = (stop - start);
 
                 }
@@ -292,16 +302,22 @@ class CryptographySoftware {
             byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
                     (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1};
 
+            byte[] iv = new byte[16];
+            SecureRandom random;
+            random = new SecureRandom();
+            random.nextBytes(iv);
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+            SecretKeySpec keySpec = new SecretKeySpec(keySwAES.getEncoded(), "AES");
 
             long start;
             long stop;
 
-            if (useKeyPos == 3) {
+            if (useKeyPos == 0) {
 
                 for (int i = 0; i < 10; i++) {
                     start = System.nanoTime();
                     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
-                    cipher.init(Cipher.ENCRYPT_MODE, keySwAES);
+                    cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
 
                     cipherCreatedAES = cipher.doFinal(data);
                     stop = System.nanoTime();
@@ -310,12 +326,12 @@ class CryptographySoftware {
                 }
                 return keyUseAesSwEnc;
 
-            } else if (useKeyPos == 4) {
+            } else if (useKeyPos == 1) {
 
                 for (int i = 0; i < 10; i++) {
                     start = System.nanoTime();
                     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
-                    cipher.init(Cipher.DECRYPT_MODE, keySwAES);
+                    cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
 
                     cipher.doFinal(cipherCreatedAES);
                     stop = System.nanoTime();

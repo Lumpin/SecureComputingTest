@@ -16,6 +16,7 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 public class CryptographySe {
 
@@ -140,8 +141,9 @@ public class CryptographySe {
             keyGenerator.init(
                     new KeyGenParameterSpec.Builder(keyAlias, keyUsage)
                             .setKeySize(256)
-                            .setDigests(KeyProperties.DIGEST_SHA256)
+                            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                            .setRandomizedEncryptionRequired(false)
                             .setIsStrongBoxBacked(true)
                             .build());
             keySeAES = keyGenerator.generateKey();
@@ -240,7 +242,7 @@ public class CryptographySe {
             String instance = "SHA256withRSA";
 
             long start;
-            long stop = System.nanoTime();
+            long stop;
 
             if (useKeyPos == 0) {
                 for (int i = 0; i < 10; i++) {
@@ -276,6 +278,7 @@ public class CryptographySe {
 
                     signature.update(data);
                     signatureCreatedRSA = signature.sign();
+                    stop = System.nanoTime();
                     keyUseRsaSeSig[i] = (stop - start);
 
                 }
@@ -313,12 +316,15 @@ public class CryptographySe {
             long start;
             long stop;
 
-            if (useKeyPos == 3) {
+            byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            IvParameterSpec ivspec = new IvParameterSpec(iv);
+
+            if (useKeyPos == 0) {
 
                 for (int i = 0; i < 10; i++) {
                     start = System.nanoTime();
                     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
-                    cipher.init(Cipher.ENCRYPT_MODE, keySeAES);
+                    cipher.init(Cipher.ENCRYPT_MODE, keySeAES, ivspec);
 
                     cipherCreatedAES = cipher.doFinal(data);
                     stop = System.nanoTime();
@@ -327,12 +333,12 @@ public class CryptographySe {
                 }
                 return keyUseAesSeEnc;
 
-            } else if (useKeyPos == 4) {
+            } else if (useKeyPos == 1) {
 
                 for (int i = 0; i < 10; i++) {
                     start = System.nanoTime();
                     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
-                    cipher.init(Cipher.DECRYPT_MODE, keySeAES);
+                    cipher.init(Cipher.DECRYPT_MODE, keySeAES, ivspec);
 
                     cipher.doFinal(cipherCreatedAES);
                     stop = System.nanoTime();
