@@ -1,7 +1,6 @@
 package com.example.securecomputingtest;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.PagerTabStrip;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -14,7 +13,9 @@ import android.widget.TextView;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
+/*
+main activity starting the app
+ */
 public class MainActivity extends AppCompatActivity {
 
     private TextView time;
@@ -110,9 +111,9 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     String text ="";
-                   for(int j = 0; j < duration.length; j++) {
-                       text = text + "\n " + duration[j];
-                   }
+
+                       text = text + "\n " + duration[1];
+
                     time.setText(text);
                 } catch (Exception e) {
                     time.setText(e.getMessage());
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
                             duration = CryptographySoftware.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            duration = CryptographySoftware.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySoftware.useKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
 
                     } else if (spinnerHw.getSelectedItemPosition() == 1) {
@@ -152,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
                             duration = CryptographyTee.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            duration = CryptographyTee.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographyTee.useKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
 
                     } else if (spinnerHw.getSelectedItemPosition() == 2) {
@@ -163,14 +164,14 @@ public class MainActivity extends AppCompatActivity {
                         } else if (spinnerAlgo.getSelectedItemPosition() == 2) {
                             duration = CryptographySe.useKeysECDSA(spinnerUseKey.getSelectedItemPosition());
                         } else if (spinnerAlgo.getSelectedItemPosition() == 3) {
-                            duration = CryptographySe.userKeysHMAC(spinnerUseKey.getSelectedItemPosition());
+                            duration = CryptographySe.useKeysHMAC(spinnerUseKey.getSelectedItemPosition());
                         }
                     }
 
                     String text ="";
-                    for(int j = 0; j < duration.length; j++) {
-                        text = text + "\n " + duration[j];
-                    }
+
+                        text = text + "\n " + duration[1];
+
                     textApplication.setText(text);
                 } catch (Exception e) {
                     Logger logger = Logger.getAnonymousLogger();

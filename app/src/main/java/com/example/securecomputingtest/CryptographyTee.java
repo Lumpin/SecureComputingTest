@@ -17,6 +17,10 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
+
+/*
+class for key storage in TEE
+ */
 class CryptographyTee {
 
     private static KeyPair keyPairTeeRSA;
@@ -42,7 +46,7 @@ class CryptographyTee {
 
     public static long[] keyGenEcTeeEnc = new long[Parameters.RUNS];
 
-    public static long[] keyGenHmacTeeEnc = new long[Parameters.RUNS];
+    public static long[] keyGenHmacTee = new long[Parameters.RUNS];
 
     //keyuse arrays
     public static long[] keyUseRsaTeeEnc = new long[Parameters.RUNS];
@@ -53,13 +57,15 @@ class CryptographyTee {
     public static long[] keyUseAesTeeEnc = new long[Parameters.RUNS];
     public static long[] keyUseAesTeeDec = new long[Parameters.RUNS];
 
-    public static long[] keyUseEcTeeEnc = new long[Parameters.RUNS];
-    public static long[] keyUseEcTeeDec = new long[Parameters.RUNS];
+    public static long[] keyUseEcTeeSig = new long[Parameters.RUNS];
+    public static long[] keyUseEcTeeVer = new long[Parameters.RUNS];
 
-    public static long[] keyUseHmacTeeEnc = new long[Parameters.RUNS];
-    public static long[] keyUseHmacTeeDec = new long[Parameters.RUNS];
+    public static long[] keyUseHmacTeeSig = new long[Parameters.RUNS];
+    public static long[] keyUseHmacTeeVer = new long[Parameters.RUNS];
 
-
+    /*
+               creation of RSA keys
+    */
     static long[] createKeysRSA(int usePos) throws Exception {
 
         int keyUsage = 0;
@@ -114,14 +120,18 @@ class CryptographyTee {
             Thread.sleep(Parameters.SLEEPTIME);
         }
         if (usePos == 0) {
+            BenchmarkingResults.storeResults(keyGenRsaTeeEnc, keyAlias);
             return keyGenRsaTeeEnc;
         } else if (usePos == 1) {
+            BenchmarkingResults.storeResults(keyGenRsaTeeSig, keyAlias);
             return keyGenRsaTeeSig;
         }
         return null;
     }
 
-
+    /*
+            creation of AES keys
+    */
     static long[] createKeysAES(int usePos) throws Exception {
 
         String keyAlias = "keyTee" + "AES" + usePos;
@@ -142,7 +152,6 @@ class CryptographyTee {
                     new KeyGenParameterSpec.Builder(keyAlias, keyUsage)
                             .setKeySize(256)
                             .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                             .setRandomizedEncryptionRequired(false)
                             .setIsStrongBoxBacked(false)
                             .build());
@@ -155,11 +164,13 @@ class CryptographyTee {
 
             Thread.sleep(Parameters.SLEEPTIME);
         }
-
+        BenchmarkingResults.storeResults(keyGenAesTeeEnc, keyAlias);
         return keyGenAesTeeEnc;
     }
 
-
+    /*
+           creation of ECDSA keys
+    */
     static long[] createKeysECDSA(int usePos) throws Exception {
 
         int keyUsage = 0;
@@ -196,12 +207,14 @@ class CryptographyTee {
 
             Thread.sleep(Parameters.SLEEPTIME);
         }
-
+        BenchmarkingResults.storeResults(keyGenEcTeeEnc, keyAlias);
         return keyGenEcTeeEnc;
 
     }
 
-
+    /*
+        creation of HMAC keys
+     */
     static long[] createKeysHMAC(int usePos) throws Exception {
 
         String keyAlias = "keyTee" + "HMAC" + usePos;
@@ -222,20 +235,20 @@ class CryptographyTee {
                             .setIsStrongBoxBacked(false)
                             .build());
             keyTeeHMAC = keyGenerator.generateKey();
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(keyTeeHMAC);
 
             long stopGen = System.nanoTime();
             timeGenKey = (stopGen - startGen)/Parameters.MEASURETIME;
 
-            keyGenHmacTeeEnc[i] = timeGenKey;
+            keyGenHmacTee[i] = timeGenKey;
             Thread.sleep(Parameters.SLEEPTIME);
         }
-
-        return keyGenHmacTeeEnc;
+        BenchmarkingResults.storeResults(keyGenHmacTee, keyAlias);
+        return keyGenHmacTee;
     }
 
-
+    /*
+        usage of RSA keys
+     */
     static long[] useKeysRSA(int useKeyPos) {
 
         try {
@@ -262,6 +275,7 @@ class CryptographyTee {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+                BenchmarkingResults.storeResults(keyUseRsaTeeEnc, "keyUseRsaTeeEnc");
                 return keyUseRsaTeeEnc;
             } else if (useKeyPos == 1) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
@@ -275,6 +289,7 @@ class CryptographyTee {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+                BenchmarkingResults.storeResults(keyUseRsaTeeDec, "keyUseRsaTeeDec");
                 return keyUseRsaTeeDec;
             } else if (useKeyPos == 2) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
@@ -289,6 +304,7 @@ class CryptographyTee {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+                BenchmarkingResults.storeResults(keyUseRsaTeeSig, "keyUseRsaTeeSig");
                 return keyUseRsaTeeSig;
 
             } else if (useKeyPos == 3) {
@@ -304,6 +320,7 @@ class CryptographyTee {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+                BenchmarkingResults.storeResults(keyUseRsaTeeVer, "keyUseRsaTeeVer");
                 return keyUseRsaTeeVer;
             }
 
@@ -314,6 +331,9 @@ class CryptographyTee {
         return null;
     }
 
+    /*
+        usage of AES keys
+     */
     static long[] useKeysAES(int useKeyPos) {
         try {
 
@@ -342,6 +362,7 @@ class CryptographyTee {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+                BenchmarkingResults.storeResults(keyUseAesTeeEnc, "keyUseAesTeeEnc");
                 return keyUseAesTeeEnc;
 
             } else if (useKeyPos == 1) {
@@ -359,6 +380,7 @@ class CryptographyTee {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+                BenchmarkingResults.storeResults(keyUseAesTeeDec, "keyUseAesTeeDec");
                 return keyUseAesTeeDec;
 
             }
@@ -370,6 +392,9 @@ class CryptographyTee {
         return null;
     }
 
+    /*
+    usage of ECDSA keys
+    */
     static long[] useKeysECDSA(int useKeyPos) {
         try {
 
@@ -391,11 +416,11 @@ class CryptographyTee {
                     signatureCreatedECDSA = signature.sign();
                     stop = System.nanoTime();
 
-                    keyUseEcTeeEnc[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseEcTeeSig[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-
-                return keyUseEcTeeEnc;
+                BenchmarkingResults.storeResults(keyUseEcTeeSig, "keyUseEcTeeSig");
+                return keyUseEcTeeSig;
 
             } else if (useKeyPos == 3) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
@@ -407,10 +432,11 @@ class CryptographyTee {
                     signature.verify(signatureCreatedECDSA);
                     stop = System.nanoTime();
 
-                    keyUseEcTeeDec[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseEcTeeVer[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseEcTeeDec;
+                BenchmarkingResults.storeResults(keyUseEcTeeVer, "keyUseEcTeeVer");
+                return keyUseEcTeeVer;
             }
 
 
@@ -421,7 +447,10 @@ class CryptographyTee {
 
     }
 
-    static long[] userKeysHMAC(int useKeyPos) {
+    /*
+    usage of HMAC keys
+ */
+    static long[] useKeysHMAC(int useKeyPos) {
         try {
 
             byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
@@ -441,10 +470,11 @@ class CryptographyTee {
                     macCreated = mac.doFinal(data);
                     stop = System.nanoTime();
 
-                    keyUseHmacTeeEnc[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseHmacTeeSig[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseHmacTeeEnc;
+                BenchmarkingResults.storeResults(keyUseHmacTeeSig, "keyUseHmacTeeSig");
+                return keyUseHmacTeeSig;
 
             } else if (useKeyPos == 3) {
 
@@ -456,10 +486,11 @@ class CryptographyTee {
                     mac.doFinal(macCreated);
                     stop = System.nanoTime();
 
-                    keyUseHmacTeeDec[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseHmacTeeVer[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseHmacTeeDec;
+                BenchmarkingResults.storeResults(keyUseHmacTeeVer, "keyUseHmacTeeVer");
+                return keyUseHmacTeeVer;
             }
 
         } catch (Exception e) {

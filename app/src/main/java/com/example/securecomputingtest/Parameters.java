@@ -1,10 +1,17 @@
 package com.example.securecomputingtest;
 
+/*
+ *  Einstellung der Parameter
+ */
 public class Parameters {
 
-    static final int RUNS = 10;
+    //Anzahl der Durchläufe
+    static final int RUNS = 30;
+
+    //Sleeptimer nach jedem Durchlauf
     static final int SLEEPTIME = 2000;
-    //1 for ns; 1000000 for ms
+
+    //Messgenauigkeit: 1 for ns; 1000000 for ms
     static final int MEASURETIME = 10000;
 
 }

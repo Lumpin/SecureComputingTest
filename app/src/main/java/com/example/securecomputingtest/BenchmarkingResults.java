@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class BenchmarkingResults {
 
-    /**
+    /*
      * writes Benchmarking Results into text file
      */
     public static void storeResults(long[] data, String name) {
@@ -35,7 +35,7 @@ public class BenchmarkingResults {
             System.out.println(Available);
 
             //Environment.getExternalStorageDirectory() + "/" +
-            String path = Environment.getExternalStorageDirectory().getAbsolutePath() +"/";
+            String path = Environment.getExternalStorageDirectory().getAbsolutePath() +"/Pictures/";
             // Create the parent path
             File dir = new File(path);
             if (!dir.exists()) {

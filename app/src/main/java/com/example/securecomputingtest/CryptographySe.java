@@ -18,6 +18,11 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
+
+/*
+class for key storage in embedded SE
+
+ */
 public class CryptographySe {
 
     private static KeyPair keyPairSeRSA;
@@ -43,7 +48,7 @@ public class CryptographySe {
 
     public static long[] keyGenEcSeEnc = new long[Parameters.RUNS];
 
-    public static long[] keyGenHmacSeEnc = new long[Parameters.RUNS];
+    public static long[] keyGenHmacSe = new long[Parameters.RUNS];
 
     //keyuse arrays
     public static long[] keyUseRsaSeEnc = new long[Parameters.RUNS];
@@ -54,13 +59,15 @@ public class CryptographySe {
     public static long[] keyUseAesSeEnc = new long[Parameters.RUNS];
     public static long[] keyUseAesSeDec = new long[Parameters.RUNS];
 
-    public static long[] keyUseEcSeEnc = new long[Parameters.RUNS];
-    public static long[] keyUseEcSeDec = new long[Parameters.RUNS];
+    public static long[] keyUseEcSeSig = new long[Parameters.RUNS];
+    public static long[] keyUseEcSeVer = new long[Parameters.RUNS];
 
-    public static long[] keyUseHmacSeEnc = new long[Parameters.RUNS];
-    public static long[] keyUseHmacSeDec = new long[Parameters.RUNS];
+    public static long[] keyUseHmacSeSig = new long[Parameters.RUNS];
+    public static long[] keyUseHmacSeVer = new long[Parameters.RUNS];
 
-
+    /*
+               creation of RSA keys
+    */
     static long[] createKeysRSA(int usePos) throws Exception {
 
         int keyUsage = 0;
@@ -124,7 +131,9 @@ public class CryptographySe {
         return null;
     }
 
-
+    /*
+               creation of AES keys
+    */
     static long[] createKeysAES(int usePos) throws Exception {
 
         String keyAlias = "keySe" + "AES" + usePos;
@@ -145,7 +154,6 @@ public class CryptographySe {
                     new KeyGenParameterSpec.Builder(keyAlias, keyUsage)
                             .setKeySize(256)
                             .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                             .setRandomizedEncryptionRequired(false)
                             .setIsStrongBoxBacked(true)
                             .build());
@@ -158,10 +166,13 @@ public class CryptographySe {
             Thread.sleep(Parameters.SLEEPTIME);
         }
 
+        BenchmarkingResults.storeResults(keyGenAesSeEnc, keyAlias);
         return keyGenAesSeEnc;
     }
 
-
+    /*
+               creation of ECDSA keys
+    */
     static long[] createKeysECDSA(int usePos) throws Exception {
 
         int keyUsage = 0;
@@ -198,12 +209,14 @@ public class CryptographySe {
             Thread.sleep(Parameters.SLEEPTIME);
 
         }
-
+        BenchmarkingResults.storeResults(keyGenEcSeEnc, keyAlias);
         return keyGenEcSeEnc;
 
     }
 
-
+    /*
+               creation of HMAC keys
+    */
     static long[] createKeysHMAC(int usePos) throws Exception {
 
         String keyAlias = "keySe" + "HMAC" + usePos;
@@ -224,20 +237,21 @@ public class CryptographySe {
                             .setIsStrongBoxBacked(true)
                             .build());
             keySeHMAC = keyGenerator.generateKey();
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(keySeHMAC);
 
             long stopGen = System.nanoTime();
             timeGenKey = (stopGen - startGen)/Parameters.MEASURETIME;
 
-            keyGenHmacSeEnc[i] = timeGenKey;
+            keyGenHmacSe[i] = timeGenKey;
             Thread.sleep(Parameters.SLEEPTIME);
         }
 
-        return keyGenHmacSeEnc;
+        BenchmarkingResults.storeResults(keyGenHmacSe, keyAlias);
+        return keyGenHmacSe;
     }
 
-
+    /*
+               usage of RSA keys
+    */
     static long[] useKeysRSA(int useKeyPos) {
 
         try {
@@ -264,6 +278,8 @@ public class CryptographySe {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+
+                BenchmarkingResults.storeResults(keyUseRsaSeEnc, "keyUseRsaSeEnc");
                 return keyUseRsaSeEnc;
             } else if (useKeyPos == 1) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
@@ -277,6 +293,8 @@ public class CryptographySe {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+
+                BenchmarkingResults.storeResults(keyUseRsaSeDec, "keyUseRsaSeDec");
                 return keyUseRsaSeDec;
             } else if (useKeyPos == 2) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
@@ -291,6 +309,8 @@ public class CryptographySe {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+
+                BenchmarkingResults.storeResults(keyUseRsaSeSig, "keyUseRsaSeSig");
                 return keyUseRsaSeSig;
 
             } else if (useKeyPos == 3) {
@@ -306,6 +326,8 @@ public class CryptographySe {
                     Thread.sleep(Parameters.SLEEPTIME);
 
                 }
+
+                BenchmarkingResults.storeResults(keyUseRsaSeVer, "keyUseRsaSeVer");
                 return keyUseRsaSeVer;
             }
 
@@ -316,6 +338,9 @@ public class CryptographySe {
         return null;
     }
 
+    /*
+               usage of AES keys
+    */
     static long[] useKeysAES(int useKeyPos) {
         try {
 
@@ -342,6 +367,8 @@ public class CryptographySe {
                     keyUseAesSeEnc[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
+
+                BenchmarkingResults.storeResults(keyUseAesSeEnc, "keyUseAesSeEnc");
                 return keyUseAesSeEnc;
 
             } else if (useKeyPos == 1) {
@@ -357,6 +384,8 @@ public class CryptographySe {
                     keyUseAesSeDec[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
+
+                BenchmarkingResults.storeResults(keyUseAesSeDec, "keyUseAesSeDec");
                 return keyUseAesSeDec;
 
             }
@@ -368,6 +397,9 @@ public class CryptographySe {
         return null;
     }
 
+    /*
+           usage of ECDSA keys
+*/
     static long[] useKeysECDSA(int useKeyPos) {
         try {
 
@@ -389,11 +421,11 @@ public class CryptographySe {
                     signatureCreatedECDSA = signature.sign();
                     stop = System.nanoTime();
 
-                    keyUseEcSeEnc[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseEcSeSig[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-
-                return keyUseEcSeEnc;
+                BenchmarkingResults.storeResults(keyUseEcSeSig, "keyUseEcSeSig");
+                return keyUseEcSeSig;
 
             } else if (useKeyPos == 3) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
@@ -405,10 +437,11 @@ public class CryptographySe {
                     signature.verify(signatureCreatedECDSA);
                     stop = System.nanoTime();
 
-                    keyUseEcSeDec[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseEcSeVer[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseEcSeDec;
+                BenchmarkingResults.storeResults(keyUseEcSeVer, "keyUseEcSeVer");
+                return keyUseEcSeVer;
             }
 
 
@@ -419,7 +452,10 @@ public class CryptographySe {
 
     }
 
-    static long[] userKeysHMAC(int useKeyPos) {
+    /*
+           usage of HMAC keys
+    */
+    static long[] useKeysHMAC(int useKeyPos) {
         try {
 
             byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
@@ -439,10 +475,11 @@ public class CryptographySe {
                     macCreated = mac.doFinal(data);
                     stop = System.nanoTime();
 
-                    keyUseHmacSeEnc[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseHmacSeSig[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseHmacSeEnc;
+                BenchmarkingResults.storeResults(keyUseHmacSeSig, "keyUseHmacSeSig");
+                return keyUseHmacSeSig;
 
             } else if (useKeyPos == 3) {
 
@@ -454,10 +491,11 @@ public class CryptographySe {
                     mac.doFinal(macCreated);
                     stop = System.nanoTime();
 
-                    keyUseHmacSeDec[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseHmacSeVer[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseHmacSeDec;
+                BenchmarkingResults.storeResults(keyUseHmacSeVer, "keyUseHmacSeVer");
+                return keyUseHmacSeVer;
             }
 
         } catch (Exception e) {

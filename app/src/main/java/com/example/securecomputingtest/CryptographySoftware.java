@@ -1,6 +1,5 @@
 package com.example.securecomputingtest;
 
-
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 
@@ -18,6 +17,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+/*
+Class for software-only keys storage
+ */
 class CryptographySoftware {
 
     private static KeyPair keyPairSwRSA;
@@ -44,7 +46,7 @@ class CryptographySoftware {
 
     public static long[] keyGenEcSwEnc = new long[Parameters.RUNS];
 
-    public static long[] keyGenHmacSwEnc = new long[Parameters.RUNS];
+    public static long[] keyGenHmacSw = new long[Parameters.RUNS];
 
     //keyuse arrays
     public static long[] keyUseRsaSwEnc = new long[Parameters.RUNS];
@@ -55,13 +57,18 @@ class CryptographySoftware {
     public static long[] keyUseAesSwEnc = new long[Parameters.RUNS];
     public static long[] keyUseAesSwDec = new long[Parameters.RUNS];
 
-    public static long[] keyUseEcSwEnc = new long[Parameters.RUNS];
-    public static long[] keyUseEcSwDec = new long[Parameters.RUNS];
+    public static long[] keyUseEcSwSig = new long[Parameters.RUNS];
+    public static long[] keyUseEcSwVer = new long[Parameters.RUNS];
 
-    public static long[] keyUseHmacSwEnc = new long[Parameters.RUNS];
-    public static long[] keyUseHmacSwDec = new long[Parameters.RUNS];
+    public static long[] keyUseHmacSwSig = new long[Parameters.RUNS];
+    public static long[] keyUseHmacSwVer = new long[Parameters.RUNS];
 
+/*
+create RSA keypair
+usePos = 0 - sets keyusage to encryption/decryption
+usePos = 1 - sets keyusage to sign/verify
 
+ */
     static long[] createKeysRSA(int usePos) throws Exception {
 
 
@@ -80,6 +87,8 @@ class CryptographySoftware {
 
             long startGen = System.nanoTime();
 
+
+            Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
 
             keyPairGenerator.initialize(new KeyGenParameterSpec.Builder(
@@ -107,14 +116,20 @@ class CryptographySoftware {
             Thread.sleep(Parameters.SLEEPTIME);
         }
         if (usePos == 0) {
+            BenchmarkingResults.storeResults(keyGenRsaSwEnc, keyAlias);
             return keyGenRsaSwEnc;
         } else if (usePos == 1) {
+            BenchmarkingResults.storeResults(keyGenRsaSwSig, keyAlias);
             return keyGenRsaSwSig;
         }
         return null;
     }
 
+    /*
+    create AES key
+    usePos = 0 - sets keyusage to encryption/decryption
 
+     */
     static long[] createKeysAES(int usePos) throws Exception {
 
         String keyAlias = "keySw" + "AES" + usePos;
@@ -124,7 +139,7 @@ class CryptographySoftware {
             keyUsage = (KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
 
         }
-
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
         long timeGenKey;
 
         for (int i = 0; i < Parameters.RUNS; i++) {
@@ -140,11 +155,16 @@ class CryptographySoftware {
 
             Thread.sleep(Parameters.SLEEPTIME);
         }
-
+        BenchmarkingResults.storeResults(keyGenAesSwEnc, keyAlias);
         return keyGenAesSwEnc;
     }
 
+    /*
+    create ECDSA keypair
+    usePos = 0 - sets keyusage to encryption/decryption
+    usePos = 1 - sets keyusage to sign/verify
 
+     */
     static long[] createKeysECDSA(int usePos) throws Exception {
 
         int keyUsage = 0;
@@ -156,8 +176,8 @@ class CryptographySoftware {
 
         keyProperties = KeyProperties.KEY_ALGORITHM_EC;
 
-        long timeGenKey;
         Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+        long timeGenKey;
 
         for (int i = 0; i < Parameters.RUNS; i++) {
             long startGen = System.nanoTime();
@@ -165,17 +185,6 @@ class CryptographySoftware {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyProperties);
             ECGenParameterSpec namedParamSpec = new ECGenParameterSpec("secp256k1");
             keyPairGenerator.initialize(namedParamSpec);
-            /*
-            //see https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec - but does not work anymore apparently
-            keyPairGenerator.initialize(
-                    new KeyGenParameterSpec.Builder(
-                            keyAlias,
-                            keyUsage).setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
-                            .setDigests(KeyProperties.DIGEST_SHA256,
-                                    KeyProperties.DIGEST_SHA512)
-                          //  .setKeySize(256)
-                            .build());
-               */
 
             keyPairSwECDSA = keyPairGenerator.generateKeyPair();
 
@@ -186,12 +195,16 @@ class CryptographySoftware {
 
             Thread.sleep(Parameters.SLEEPTIME);
         }
-
+        BenchmarkingResults.storeResults(keyGenEcSwEnc, keyAlias);
         return keyGenEcSwEnc;
 
     }
 
+    /*
+    create HMAC key
+    usePos = 1 - sets keyusage to sign/verify
 
+     */
     static long[] createKeysHMAC(int usePos) throws Exception {
 
         String keyAlias = "keySw" + "HMAC" + usePos;
@@ -201,8 +214,9 @@ class CryptographySoftware {
             keyUsage = (KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY);
         }
 
+        Security.insertProviderAt(
+                new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
         long timeGenKey;
-        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
         for (int i = 0; i < Parameters.RUNS; i++) {
 
@@ -213,32 +227,32 @@ class CryptographySoftware {
                     new KeyGenParameterSpec.Builder(keyAlias, keyUsage)
                             .build());
             keySwHMAC = keyGenerator.generateKey();
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(keySwHMAC);
 
             long stopGen = System.nanoTime();
             timeGenKey = (stopGen - startGen)/Parameters.MEASURETIME;
 
-            keyGenHmacSwEnc[i] = timeGenKey;
-
+            keyGenHmacSw[i] = timeGenKey;
             Thread.sleep(Parameters.SLEEPTIME);
         }
-
-        return keyGenHmacSwEnc;
+        BenchmarkingResults.storeResults(keyGenHmacSw, keyAlias);
+        return keyGenHmacSw;
     }
 
-
+/*
+    usage of RSA keys
+ */
     static long[] useKeysRSA(int useKeyPos) {
 
         try {
 
+            //hard coded message
             byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
                     (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1};
 
             String instance = "SHA256withRSA";
 
             long start;
-            long stop = System.nanoTime();
+            long stop;
 
             if (useKeyPos == 0) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
@@ -253,7 +267,9 @@ class CryptographySoftware {
                     keyUseRsaSwEnc[i] = (stop - start)/Parameters.MEASURETIME;
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
+                BenchmarkingResults.storeResults(keyUseRsaSwEnc, "keyUseRsaSwEnc");
                 return keyUseRsaSwEnc;
+
             } else if (useKeyPos == 1) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
                     start = System.nanoTime();
@@ -266,7 +282,9 @@ class CryptographySoftware {
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
+                BenchmarkingResults.storeResults(keyUseRsaSwDec, "keyUseRsaSwDec");
                 return keyUseRsaSwDec;
+
             } else if (useKeyPos == 2) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
                     start = System.nanoTime();
@@ -280,6 +298,7 @@ class CryptographySoftware {
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
+                BenchmarkingResults.storeResults(keyUseRsaSwSig, "keyUseRsaSwSig");
                 return keyUseRsaSwSig;
 
             } else if (useKeyPos == 3) {
@@ -295,6 +314,7 @@ class CryptographySoftware {
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
+                BenchmarkingResults.storeResults(keyUseRsaSwVer, "keyUseRsaSwVer");
                 return keyUseRsaSwVer;
             }
 
@@ -305,6 +325,9 @@ class CryptographySoftware {
         return null;
     }
 
+    /*
+    usage of AES keys
+ */
     static long[] useKeysAES(int useKeyPos) {
         try {
 
@@ -335,6 +358,7 @@ class CryptographySoftware {
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
+                BenchmarkingResults.storeResults(keyUseAesSwEnc, "keyUseAesSwEnc");
                 return keyUseAesSwEnc;
 
             } else if (useKeyPos == 1) {
@@ -351,6 +375,7 @@ class CryptographySoftware {
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
+                BenchmarkingResults.storeResults(keyUseAesSwDec, "keyUseAesSwDec");
                 return keyUseAesSwDec;
 
             }
@@ -362,6 +387,9 @@ class CryptographySoftware {
         return null;
     }
 
+    /*
+    usage of ECDSA keys
+ */
     static long[] useKeysECDSA(int useKeyPos) {
         try {
 
@@ -383,12 +411,12 @@ class CryptographySoftware {
                     signatureCreatedECDSA = signature.sign();
                     stop = System.nanoTime();
 
-                    keyUseEcSwEnc[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseEcSwSig[i] = (stop - start)/Parameters.MEASURETIME;
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-
-                return keyUseEcSwEnc;
+                BenchmarkingResults.storeResults(keyUseEcSwSig, "keyUseEcSwSig");
+                return keyUseEcSwSig;
 
             } else if (useKeyPos == 3) {
                 for (int i = 0; i < Parameters.RUNS; i++) {
@@ -400,11 +428,12 @@ class CryptographySoftware {
                     signature.verify(signatureCreatedECDSA);
                     stop = System.nanoTime();
 
-                    keyUseEcSwDec[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseEcSwVer[i] = (stop - start)/Parameters.MEASURETIME;
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseEcSwDec;
+                BenchmarkingResults.storeResults(keyUseEcSwVer, "keyUseEcSwVer");
+                return keyUseEcSwVer;
             }
 
 
@@ -415,7 +444,10 @@ class CryptographySoftware {
 
     }
 
-    static long[] userKeysHMAC(int useKeyPos) {
+    /*
+        usage of HMAC keys
+     */
+    static long[] useKeysHMAC(int useKeyPos) {
         try {
 
             byte[] data = {(byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1, (byte) 1,
@@ -435,11 +467,12 @@ class CryptographySoftware {
                     macCreated = mac.doFinal(data);
                     stop = System.nanoTime();
 
-                    keyUseHmacSwEnc[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseHmacSwSig[i] = (stop - start)/Parameters.MEASURETIME;
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseHmacSwEnc;
+                BenchmarkingResults.storeResults(keyUseHmacSwSig, "keyUseHmacSwSig");
+                return keyUseHmacSwSig;
 
             } else if (useKeyPos == 3) {
 
@@ -451,11 +484,12 @@ class CryptographySoftware {
                     mac.doFinal(macCreated);
                     stop = System.nanoTime();
 
-                    keyUseHmacSwDec[i] = (stop - start)/Parameters.MEASURETIME;
+                    keyUseHmacSwVer[i] = (stop - start)/Parameters.MEASURETIME;
 
                     Thread.sleep(Parameters.SLEEPTIME);
                 }
-                return keyUseHmacSwDec;
+                BenchmarkingResults.storeResults(keyUseHmacSwVer, "keyUseHmacSwVer");
+                return keyUseHmacSwVer;
             }
 
         } catch (Exception e) {
